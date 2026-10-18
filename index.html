@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TVUI — Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg: #090b12;
+      --panel: rgba(16, 18, 28, 0.8);
+      --panel-strong: rgba(10, 12, 18, 0.92);
+      --line: rgba(255,255,255,0.08);
+      --text: #eef3ff;
+      --muted: #a7b0c7;
+      --accent: #5cc8ff;
+      --accent-2: #8d7dff;
+      --good: #5fe0a6;
+      --warn: #ffcd5d;
+      --danger: #ff6b6b;
+    }
+
+    * { box-sizing:border-box; }
+    html,body {
+      height:100%;
+      margin:0;
+      background: var(--bg);
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color: var(--text);
+    }
+
+    body {
+      overflow:hidden;
+    }
+
+    #app {
+      position:relative;
+      height:100vh;
+      width:100vw;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at top left, rgba(87,140,255,0.22), transparent 26%),
+        linear-gradient(135deg, #02050d 0%, #0a0d14 40%, #090b12 100%);
+    }
+
+    video#player {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      background:#000;
+      display:block;
+      filter: brightness(0.9) saturate(1.05);
+    }
+
+    .top-bar {
+      position:absolute;
+      left:0;
+      right:0;
+      top:0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 18px 10px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.58), rgba(0,0,0,0.06));
+      backdrop-filter: blur(10px);
+      z-index:3;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .top-actions,
+    .audio-controls {
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .audio-value {
+      min-width:54px;
+      color:var(--muted);
+      text-align:center;
+      font-size:11px;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .nav-btn {
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(8, 10, 18, 0.5);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      cursor:pointer;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(92,200,255,0.18);
+      transform: translateY(-1px);
+    }
+
+    .nav-btn.small {
+      padding: 8px 12px;
+      min-width: 42px;
+    }
+
+    .status-pill {
+      font-size: 11px;
+      letter-spacing: .12em;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .hint {
+      position:absolute;
+      left: 20px;
+      top: 20px;
+      z-index: 4;
+      color: rgba(255,255,255,0.9);
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding:7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      pointer-events:none;
+    }
+
+    .bottom-bar {
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      display:flex;
+      gap:14px;
+      align-items:center;
+      padding:12px 18px 14px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.72));
+      backdrop-filter: blur(12px);
+      color: var(--text);
+      box-sizing:border-box;
+      pointer-events:auto;
+      z-index:3;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .logo {
+      width: 82px;
+      height: 52px;
+      object-fit:contain;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.08);
+      padding: 4px;
+    }
+
+    .info {
+      display:flex;
+      flex-direction:column;
+      flex:1;
+      min-width:0;
+    }
+
+    .channel-name {
+      font-weight: 800;
+      font-size: 22px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .show-name {
+      color: var(--muted);
+      margin-top:4px;
+      font-size: 14px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .right {
+      margin-left:auto;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width: 120px;
+      justify-content:flex-end;
+    }
+
+    .end-time {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .poster,
+    .title {
+      display:none !important;
+    }
+
+    .flash {
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      border: 2px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 0 45px rgba(255,255,255,0.04);
+      animation: flash 500ms ease-out;
+      z-index:1;
+    }
+
+    @keyframes flash {
+      from { opacity:1; }
+      to { opacity:0; }
+    }
+
+    #app.ui-hidden .top-bar,
+    #app.ui-hidden .bottom-bar,
+    #app.ui-hidden .hint {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+    }
+
+    #app.ui-hidden .top-bar {
+      transform: translateY(-18px);
+    }
+
+    #app.ui-hidden .bottom-bar {
+      transform: translateY(18px);
+    }
+
+    @media (max-width: 820px) {
+      .channel-name {
+        font-size: 18px;
+      }
+      .logo {
+        width: 70px;
+      }
+      .nav-btn {
+        padding: 7px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="hint">TV • Tamil Live</div>
+
+    <div id="topBar" class="top-bar">
+      <button id="prevChannel" class="nav-btn" type="button">◀ Prev</button>
+      <div id="channelCounter" class="status-pill">1 / 30</div>
+      <div class="top-actions">
+        <div class="audio-controls" aria-label="Audio controls">
+          <button id="delayDown" class="nav-btn small" type="button" title="Reduce audio delay [">[</button>
+          <span id="delayValue" class="audio-value">0 ms</span>
+          <button id="delayUp" class="nav-btn small" type="button" title="Increase audio delay ]">]</button>
+          <button id="volumeDown" class="nav-btn small" type="button" aria-label="Volume down" title="Volume down">↓</button>
+          <span id="volumeValue" class="audio-value">100%</span>
+          <button id="volumeUp" class="nav-btn small" type="button" aria-label="Volume up" title="Volume up">↑</button>
+        </div>
+        <button id="nextChannel" class="nav-btn" type="button">Next ▶</button>
+      </div>
+    </div>
+
+    <video id="player" playsinline></video>
+
+    <div id="flash" class="flash" style="display:none;"></div>
+
+    <div class="bottom-bar" id="bottomBar">
+      <img id="logo" class="logo" src="" alt="logo" />
+      <div class="info">
+        <div id="channelName" class="channel-name">Loading…</div>
+        <div id="showName" class="show-name">Connecting to stream…</div>
+      </div>
+      <div class="right">
+        <div id="endTime" class="end-time">LIVE</div>
+        <button id="prevBottom" class="nav-btn small" type="button" aria-label="Previous channel">◀</button>
+        <button id="nextBottom" class="nav-btn small" type="button" aria-label="Next channel">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/shaka-player@4/dist/shaka-player.compiled.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+  <script>
+    const PLAYLIST_URLS = [
+      'https://raw.githubusercontent.com/nova-07-07/tv/refs/heads/main/main.m3u8',
+      'https://iptv-org.github.io/iptv/languages/tam.m3u'
+    ];
+    const LOCAL_PLAYLIST_KEY = 'iptv-local-playlist-m3u';
+    const LAST_CHANNEL_KEY = 'iptv-last-played-channel';
+    let channels = [];
+    let idx = 0;
+    let hls = null;
+    let shakaPlayer = null;
+    let activePlaybackToken = 0;
+    let playbackAttempts = 0;
+    let retryTimer = null;
+    let stallTimer = null;
+    let stablePlaybackTimer = null;
+    let audioContext = null;
+    let audioSource = null;
+    let audioDelayNode = null;
+    let audioGainNode = null;
+    let audioDelaySeconds = 0;
+    let isMuted = false;
+    let guideOpen = true;
+    const MAX_PLAYBACK_ATTEMPTS = 5;
+
+    const app = document.getElementById('app');
+    const video = document.getElementById('player');
+    const logo = document.getElementById('logo');
+    const channelName = document.getElementById('channelName');
+    const showName = document.getElementById('showName');
+    const endTime = document.getElementById('endTime');
+    const flash = document.getElementById('flash');
+    const channelCounter = document.getElementById('channelCounter');
+    const prevChannelBtn = document.getElementById('prevChannel');
+    const nextChannelBtn = document.getElementById('nextChannel');
+    const prevBottomBtn = document.getElementById('prevBottom');
+    const nextBottomBtn = document.getElementById('nextBottom');
+    const delayDownBtn = document.getElementById('delayDown');
+    const delayUpBtn = document.getElementById('delayUp');
+    const delayValue = document.getElementById('delayValue');
+    const volumeDownBtn = document.getElementById('volumeDown');
+    const volumeUpBtn = document.getElementById('volumeUp');
+    const volumeValue = document.getElementById('volumeValue');
+
+    function cleanChannelName(name) {
+      return String(name || 'Tamil Channel')
+        .replace(/\s*\(\d+p\)\s*$/i, '')
+        .replace(/\s+\|\s+Tamil.*$/i, '')
+        .trim();
+    }
+
+    function parseM3uPlaylist(text) {
+      const lines = text.split(/\r?\n/);
+      const list = [];
+      let current = null;
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        if (trimmed.startsWith('#EXTINF')) {
+          const attrs = {};
+          for (const match of trimmed.matchAll(/([A-Za-z0-9-]+)="([^"]*)"/g)) {
+            attrs[match[1].toLowerCase()] = match[2];
+          }
+
+          const labelMatch = trimmed.match(/,(.*)$/);
+          const rawName = attrs['tvg-name'] || (labelMatch ? labelMatch[1].trim() : 'Tamil Channel');
+          current = {
+            id: attrs['tvg-id'] || `channel-${list.length + 1}`,
+            name: cleanChannelName(rawName),
+            logo: attrs['tvg-logo'] || '',
+            group: attrs['group-title'] || 'Tamil',
+            language: 'Tamil',
+            resolution: attrs['tvg-resolution'] || 'Unknown',
+            url: ''
+          };
+        } else if (trimmed && !trimmed.startsWith('#') && current) {
+          list.push({ ...current, url: trimmed });
+          current = null;
+        }
+      }
+
+      return list;
+    }
+
+    function updateCounter() {
+      if (!channels.length) {
+        channelCounter.textContent = '0 / 0';
+        return;
+      }
+      channelCounter.textContent = `${idx + 1} / ${channels.length}`;
+    }
+
+    function dedupeChannels(list) {
+      const seen = new Set();
+      const result = [];
+      list.forEach((ch) => {
+        if (!ch.url || !ch.name) return;
+        let pathname;
+        try {
+          pathname = new URL(ch.url).pathname;
+        } catch {
+          return;
+        }
+        const key = ch.url.toLowerCase();
+        if (seen.has(key) || !/\.(m3u8?|mpd)$/i.test(pathname)) return;
+        seen.add(key);
+        result.push(ch);
+      });
+      return result;
+    }
+
+    function serializeM3uPlaylist(list) {
+      const entries = list.map((channel) => {
+        const attributes = [
+          `tvg-id="${String(channel.id || '').replace(/"/g, '')}"`,
+          `tvg-name="${String(channel.name || '').replace(/"/g, '')}"`,
+          `tvg-logo="${String(channel.logo || '').replace(/"/g, '')}"`,
+          `group-title="${String(channel.group || 'Tamil').replace(/"/g, '')}"`
+        ].join(' ');
+        return `#EXTINF:-1 ${attributes},${channel.name}\n${channel.url}`;
+      });
+      return `#EXTM3U\n${entries.join('\n')}\n`;
+    }
+
+    function storeLocalPlaylist(list) {
+      const playlistText = serializeM3uPlaylist(list);
+      try {
+        localStorage.setItem(LOCAL_PLAYLIST_KEY, playlistText);
+      } catch (error) {
+        console.warn('Could not store the local playlist', error);
+      }
+      return playlistText;
+    }
+
+    function chooseStartIndex(list) {
+      let startIndex = Math.floor(Math.random() * list.length);
+      try {
+        const savedUrl = localStorage.getItem(LAST_CHANNEL_KEY);
+        const savedIndex = list.findIndex((channel) => channel.url === savedUrl);
+        if (savedIndex !== -1) startIndex = savedIndex;
+      } catch (error) {
+        console.warn('Could not read the saved channel', error);
+      }
+      return startIndex;
+    }
+
+    async function loadPlaylist() {
+      let cachedChannels = [];
+      try {
+        const cachedText = localStorage.getItem(LOCAL_PLAYLIST_KEY);
+        if (cachedText) cachedChannels = dedupeChannels(parseM3uPlaylist(cachedText));
+      } catch (error) {
+        console.warn('Could not read the local playlist cache', error);
+      }
+
+      if (cachedChannels.length) {
+        channels = cachedChannels;
+        updateCounter();
+        loadChannel(chooseStartIndex(channels), true);
+      }
+
+      try {
+        const playlists = await Promise.allSettled(PLAYLIST_URLS.map(async (url) => {
+          const response = await fetch(url, { cache: 'no-store', redirect: 'follow' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const text = await response.text();
+          if (!text.trimStart().startsWith('#EXTM3U')) {
+            throw new Error('Response is not an M3U playlist');
+          }
+          return parseM3uPlaylist(text);
+        }));
+
+        const parsed = playlists.flatMap((result, index) => {
+          if (result.status === 'fulfilled') return result.value;
+          console.warn(`Playlist unavailable: ${PLAYLIST_URLS[index]}`, result.reason);
+          return [];
+        });
+        const refreshedChannels = dedupeChannels(parsed);
+        if (!refreshedChannels.length) throw new Error('No valid channels found in available playlists');
+
+        storeLocalPlaylist(refreshedChannels);
+        if (!cachedChannels.length) {
+          channels = refreshedChannels;
+          updateCounter();
+          loadChannel(chooseStartIndex(channels), true);
+        } else {
+          const currentUrl = channels[idx]?.url;
+          channels = refreshedChannels;
+          const currentIndex = channels.findIndex((channel) => channel.url === currentUrl);
+          if (currentIndex !== -1) idx = currentIndex;
+          updateCounter();
+        }
+      } catch (error) {
+        console.error('Error loading playlist:', error);
+        if (!cachedChannels.length) {
+          channels = [];
+          channelName.textContent = 'Playlist unavailable';
+          showName.textContent = 'Could not load a valid channel list';
+          updateCounter();
+        }
+      }
+    }
+
+    function clearPlaybackTimers() {
+      clearTimeout(retryTimer);
+      clearTimeout(stallTimer);
+      clearTimeout(stablePlaybackTimer);
+      retryTimer = null;
+      stallTimer = null;
+      stablePlaybackTimer = null;
+    }
+
+    function handlePlaybackFailure(token, error) {
+      if (token !== activePlaybackToken || retryTimer) return;
+      console.warn(`Playback attempt ${playbackAttempts}/${MAX_PLAYBACK_ATTEMPTS} failed`, error);
+      clearTimeout(stallTimer);
+      clearTimeout(stablePlaybackTimer);
+      stallTimer = null;
+      stablePlaybackTimer = null;
+
+      if (playbackAttempts >= MAX_PLAYBACK_ATTEMPTS) {
+        showName.textContent = 'Stream failed after 5 attempts; trying next channel';
+        retryTimer = setTimeout(() => {
+          retryTimer = null;
+          loadChannel(idx + 1, true);
+        }, 700);
+        return;
+      }
+
+      showName.textContent = `Retrying stream (${playbackAttempts + 1}/${MAX_PLAYBACK_ATTEMPTS})`;
+      retryTimer = setTimeout(() => {
+        retryTimer = null;
+        loadChannel(idx, true, true);
+      }, 1200);
+    }
+
+    function loadChannel(index, autoplay = true, isRetry = false) {
+      if (!channels.length) return;
+      clearPlaybackTimers();
+      if (!isRetry) playbackAttempts = 1;
+      else playbackAttempts += 1;
+      idx = (index + channels.length) % channels.length;
+      const ch = channels[idx];
+      const token = ++activePlaybackToken;
+
+      logo.src = ch.logo || '';
+      channelName.textContent = ch.name || 'Tamil Channel';
+      showName.textContent = ch.group || 'Live';
+      endTime.textContent = 'LIVE';
+      updateCounter();
+
+      flash.style.display = 'block';
+      setTimeout(() => flash.style.display = 'none', 500);
+
+      video.pause();
+      void startPlayback(ch.url, token, autoplay);
+    }
+
+    async function startPlayback(src, token, autoplay) {
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+      if (shakaPlayer) {
+        const previousPlayer = shakaPlayer;
+        shakaPlayer = null;
+        await previousPlayer.destroy().catch(() => {});
+      }
+      if (token !== activePlaybackToken) return;
+
+      if (window.shaka?.Player?.isBrowserSupported()) {
+        try {
+          const player = new shaka.Player();
+          shakaPlayer = player;
+          await player.attach(video);
+          if (token !== activePlaybackToken) return;
+          player.configure({
+            streaming: {
+              retryParameters: { maxAttempts: 2, baseDelay: 500, backoffFactor: 1.5 }
+            }
+          });
+          let shakaLoaded = false;
+          player.addEventListener('error', (event) => {
+            if (shakaLoaded && token === activePlaybackToken) handlePlaybackFailure(token, event.detail);
+          });
+          await player.load(src);
+          shakaLoaded = true;
+          if (token === activePlaybackToken && autoplay) await tryPlay(token);
+          return;
+        } catch (error) {
+          if (token !== activePlaybackToken) return;
+          console.warn('Shaka playback failed; trying HLS/native fallback', error);
+          const failedPlayer = shakaPlayer;
+          shakaPlayer = null;
+          if (failedPlayer) await failedPlayer.destroy().catch(() => {});
+          if (token !== activePlaybackToken) return;
+        }
+      }
+
+      if (window.Hls && Hls.isSupported() && /\.m3u8?(?:$|\?)/i.test(src)) {
+        hls = new Hls({
+          maxBufferLength: 20,
+          backBufferLength: 12,
+          lowLatencyMode: false,
+          debug: false,
+          manifestLoadingMaxRetry: 2,
+          levelLoadingMaxRetry: 2,
+          fragLoadingMaxRetry: 2
+        });
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (token === activePlaybackToken && data?.fatal) handlePlaybackFailure(token, data);
+        });
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (token === activePlaybackToken && autoplay) void tryPlay(token);
+        });
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          if (token === activePlaybackToken) hls.loadSource(src);
+        });
+        return;
+      }
+
+      video.src = src;
+      if (autoplay) void tryPlay(token);
+    }
+
+    async function tryPlay(token = activePlaybackToken) {
+      try {
+        video.muted = isMuted;
+        if (audioGainNode) audioGainNode.gain.value = isMuted ? 0 : video.volume;
+        await video.play();
+      } catch (err) {
+        try {
+          video.muted = true;
+          if (audioGainNode) audioGainNode.gain.value = 0;
+          await video.play();
+          isMuted = true;
+        } catch (err2) {
+          console.warn('Autoplay blocked', err2);
+          if (token === activePlaybackToken && err2.name !== 'NotAllowedError') {
+            handlePlaybackFailure(token, err2);
+          }
+        }
+      }
+    }
+
+    async function setAudioDelay(nextDelay) {
+      audioDelaySeconds = Math.max(0, Math.min(2, nextDelay));
+      delayValue.textContent = `${Math.round(audioDelaySeconds * 1000)} ms`;
+      if (!audioDelaySeconds && !audioDelayNode) return;
+
+      try {
+        if (!audioContext) {
+          const currentUrl = channels[idx]?.url;
+          if (!currentUrl) throw new Error('No active stream');
+          await fetch(currentUrl, { method: 'HEAD', mode: 'cors', cache: 'no-store' });
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) throw new Error('Web Audio is not supported in this browser');
+          audioContext = new AudioContextClass();
+          audioSource = audioContext.createMediaElementSource(video);
+          audioDelayNode = audioContext.createDelay(2);
+          audioGainNode = audioContext.createGain();
+          audioDelayNode.delayTime.value = audioDelaySeconds;
+          audioGainNode.gain.value = isMuted ? 0 : video.volume;
+          audioSource.connect(audioDelayNode);
+          audioDelayNode.connect(audioGainNode);
+          audioGainNode.connect(audioContext.destination);
+        } else {
+          await audioContext.resume();
+          audioDelayNode.delayTime.setTargetAtTime(audioDelaySeconds, audioContext.currentTime, 0.03);
+        }
+      } catch (error) {
+        audioDelaySeconds = 0;
+        delayValue.textContent = 'N/A';
+        console.warn('Audio delay is unavailable for this cross-origin stream', error);
+      }
+    }
+
+    function adjustVolume(amount) {
+      video.volume = Math.max(0, Math.min(1, video.volume + amount));
+      if (video.volume > 0 && isMuted) {
+        isMuted = false;
+        video.muted = false;
+      }
+      if (audioGainNode) audioGainNode.gain.value = isMuted ? 0 : video.volume;
+      volumeValue.textContent = `${Math.round(video.volume * 100)}%`;
+    }
+
+    let autoClickTimeout = null;
+
+    function triggerAutoClick() {
+      if (autoClickTimeout) clearTimeout(autoClickTimeout);
+      autoClickTimeout = setTimeout(() => {
+        if (isMuted) video.click();
+      }, 1500);
+    }
+
+    function showUi() {
+      app.classList.remove('ui-hidden');
+      clearTimeout(window.__tvUiHideTimer);
+      window.__tvUiHideTimer = setTimeout(() => {
+        app.classList.add('ui-hidden');
+      }, 2600);
+    }
+
+    ['pointermove', 'pointerdown', 'touchstart', 'keydown'].forEach((eventName) => {
+      document.addEventListener(eventName, showUi);
+    });
+
+    prevChannelBtn.addEventListener('click', () => loadChannel(idx - 1, true));
+    nextChannelBtn.addEventListener('click', () => loadChannel(idx + 1, true));
+    prevBottomBtn.addEventListener('click', () => loadChannel(idx - 1, true));
+    nextBottomBtn.addEventListener('click', () => loadChannel(idx + 1, true));
+    delayDownBtn.addEventListener('click', () => void setAudioDelay(audioDelaySeconds - 0.1));
+    delayUpBtn.addEventListener('click', () => void setAudioDelay(audioDelaySeconds + 0.1));
+    volumeDownBtn.addEventListener('click', () => adjustVolume(-0.05));
+    volumeUpBtn.addEventListener('click', () => adjustVolume(0.05));
+
+    window.addEventListener('keydown', (ev) => {
+      if (ev.key === 'ArrowLeft') {
+        loadChannel(idx - 1, true);
+        triggerAutoClick();
+      } else if (ev.key === 'ArrowRight') {
+        loadChannel(idx + 1, true);
+        triggerAutoClick();
+      } else if (ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        adjustVolume(0.05);
+      } else if (ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        adjustVolume(-0.05);
+      } else if (ev.key === '[') {
+        ev.preventDefault();
+        void setAudioDelay(audioDelaySeconds - 0.1);
+      } else if (ev.key === ']') {
+        ev.preventDefault();
+        void setAudioDelay(audioDelaySeconds + 0.1);
+      } else if (ev.key === 'm' || ev.key === 'M') {
+        isMuted = !isMuted;
+        video.muted = isMuted;
+        if (audioGainNode) audioGainNode.gain.value = isMuted ? 0 : video.volume;
+      }
+    });
+
+    video.addEventListener('click', async () => {
+      showUi();
+      if (video.paused) {
+        await tryPlay();
+      } else {
+        isMuted = !isMuted;
+        video.muted = isMuted;
+      }
+    });
+
+    video.addEventListener('error', (e) => {
+      console.error('Video element error', e);
+      handlePlaybackFailure(activePlaybackToken, video.error || e);
+    });
+
+    video.addEventListener('waiting', () => {
+      if (video.paused || stallTimer) return;
+      const token = activePlaybackToken;
+      stallTimer = setTimeout(() => {
+        stallTimer = null;
+        if (token === activePlaybackToken && video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
+          handlePlaybackFailure(token, new Error('Playback stalled'));
+        }
+      }, 12000);
+    });
+
+    video.addEventListener('playing', () => {
+      clearTimeout(stallTimer);
+      stallTimer = null;
+      clearTimeout(stablePlaybackTimer);
+      stablePlaybackTimer = setTimeout(() => {
+        if (!video.paused) playbackAttempts = 1;
+      }, 20000);
+    });
+
+    video.addEventListener('playing', () => {
+      const currentChannel = channels[idx];
+      if (!currentChannel) return;
+      try {
+        localStorage.setItem(LAST_CHANNEL_KEY, currentChannel.url);
+      } catch (error) {
+        console.warn('Could not save the last played channel', error);
+      }
+    });
+
+    showUi();
+    volumeValue.textContent = `${Math.round(video.volume * 100)}%`;
+    loadPlaylist();
+  </script>
+</body>
+</html>
