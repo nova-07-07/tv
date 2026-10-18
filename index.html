@@ -293,8 +293,11 @@
   <script>
     const PLAYLIST_URLS = [
       'https://raw.githubusercontent.com/nova-07-07/tv/refs/heads/main/main.m3u8',
-      'https://iptv-org.github.io/iptv/languages/tam.m3u'
+    //   'https://iptv-org.github.io/iptv/languages/tam.m3u'
     ];
+    const MOVIE_LINK_URL = 'https://raw.githubusercontent.com/nova-07-07/tv/refs/heads/main/movie.txt';
+    const MOVIE_CHANNEL_ID = 'latest-movie-link';
+    const MOVIE_POLL_INTERVAL = 10000;
     const LOCAL_PLAYLIST_KEY = 'iptv-local-playlist-m3u';
     const LAST_CHANNEL_KEY = 'iptv-last-played-channel';
     let channels = [];
@@ -311,6 +314,8 @@
     let audioDelayNode = null;
     let audioGainNode = null;
     let audioDelaySeconds = 0;
+    let lastMovieFetchUrl = '';
+    let moviePollInProgress = false;
     let isMuted = false;
     let guideOpen = true;
     const MAX_PLAYBACK_ATTEMPTS = 5;
@@ -396,7 +401,8 @@
           return;
         }
         const key = ch.url.toLowerCase();
-        if (seen.has(key) || !/\.(m3u8?|mpd)$/i.test(pathname)) return;
+        const isKnownMediaFile = /\.(m3u8?|mpd|mp4|m4v|webm|mov)$/i.test(pathname);
+        if (seen.has(key) || (!isKnownMediaFile && ch.id !== MOVIE_CHANNEL_ID)) return;
         seen.add(key);
         result.push(ch);
       });
@@ -495,6 +501,54 @@
       }
     }
 
+    function extractMovieUrl(text) {
+      const match = text.match(/https?:\/\/[^\s"'<>]+/i);
+      if (!match) return '';
+
+      try {
+        return new URL(match[0].replace(/[),.;]+$/, '')).href;
+      } catch {
+        return '';
+      }
+    }
+
+    async function pollMovieLink() {
+      if (moviePollInProgress) return;
+      moviePollInProgress = true;
+      try {
+        const response = await fetch(MOVIE_LINK_URL, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const fetchedUrl = extractMovieUrl(await response.text());
+        if (!fetchedUrl || fetchedUrl === lastMovieFetchUrl) return;
+
+        lastMovieFetchUrl = fetchedUrl;
+        const movieChannel = {
+          id: MOVIE_CHANNEL_ID,
+          name: 'Latest Movie',
+          logo: '',
+          group: 'Movie link',
+          language: 'Tamil',
+          resolution: 'Unknown',
+          url: fetchedUrl
+        };
+        const wasPlayingMovie = channels[idx]?.id === MOVIE_CHANNEL_ID;
+        const existingIndex = channels.findIndex((channel) => channel.id === MOVIE_CHANNEL_ID);
+
+        if (existingIndex === -1) channels.push(movieChannel);
+        else channels[existingIndex] = movieChannel;
+
+        storeLocalPlaylist(channels);
+        updateCounter();
+
+        const movieIndex = channels.findIndex((channel) => channel.id === MOVIE_CHANNEL_ID);
+        if (wasPlayingMovie) loadChannel(movieIndex, true);
+      } catch (error) {
+        console.warn('Could not poll the latest movie link', error);
+      } finally {
+        moviePollInProgress = false;
+      }
+    }
+
     function clearPlaybackTimers() {
       clearTimeout(retryTimer);
       clearTimeout(stallTimer);
@@ -547,10 +601,10 @@
       setTimeout(() => flash.style.display = 'none', 500);
 
       video.pause();
-      void startPlayback(ch.url, token, autoplay);
+      void startPlayback(ch.url, token, autoplay, ch.id === MOVIE_CHANNEL_ID);
     }
 
-    async function startPlayback(src, token, autoplay) {
+    async function startPlayback(src, token, autoplay, directMedia = false) {
       if (hls) {
         hls.destroy();
         hls = null;
@@ -561,6 +615,22 @@
         await previousPlayer.destroy().catch(() => {});
       }
       if (token !== activePlaybackToken) return;
+
+      video.replaceChildren();
+      video.removeAttribute('src');
+
+      if (directMedia) {
+        video.controls = true;
+        const source = document.createElement('source');
+        source.src = src;
+        source.type = 'video/mp4';
+        video.append(source);
+        video.load();
+        if (autoplay) void tryPlay(token);
+        return;
+      }
+
+      video.controls = false;
 
       if (window.shaka?.Player?.isBrowserSupported()) {
         try {
@@ -680,6 +750,29 @@
       volumeValue.textContent = `${Math.round(video.volume * 100)}%`;
     }
 
+    function seekVideo(seconds) {
+      if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+      const targetTime = video.currentTime + seconds;
+      video.currentTime = Math.max(0, Math.min(video.duration, targetTime));
+    }
+
+    async function toggleFullscreenAndUnmute() {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        return;
+      }
+
+      isMuted = false;
+      video.muted = false;
+      if (audioGainNode) audioGainNode.gain.value = video.volume;
+
+      try {
+        await app.requestFullscreen();
+      } catch (error) {
+        console.warn('Could not enter fullscreen mode', error);
+      }
+    }
+
     let autoClickTimeout = null;
 
     function triggerAutoClick() {
@@ -711,7 +804,10 @@
     volumeUpBtn.addEventListener('click', () => adjustVolume(0.05));
 
     window.addEventListener('keydown', (ev) => {
-      if (ev.key === 'ArrowLeft') {
+      if ((ev.key === 'f' || ev.key === 'F') && !ev.repeat) {
+        ev.preventDefault();
+        void toggleFullscreenAndUnmute();
+      } else if (ev.key === 'ArrowLeft') {
         loadChannel(idx - 1, true);
         triggerAutoClick();
       } else if (ev.key === 'ArrowRight') {
@@ -723,6 +819,12 @@
       } else if (ev.key === 'ArrowDown') {
         ev.preventDefault();
         adjustVolume(-0.05);
+      } else if (ev.key === ',') {
+        ev.preventDefault();
+        seekVideo(-10);
+      } else if (ev.key === '.') {
+        ev.preventDefault();
+        seekVideo(10);
       } else if (ev.key === '[') {
         ev.preventDefault();
         void setAudioDelay(audioDelaySeconds - 0.1);
@@ -742,7 +844,7 @@
         await tryPlay();
       } else {
         isMuted = !isMuted;
-        video.muted = isMuted;
+        if (!isMuted)video.muted = isMuted;
       }
     });
 
@@ -782,8 +884,12 @@
     });
 
     showUi();
+    video.volume = 0.3;
     volumeValue.textContent = `${Math.round(video.volume * 100)}%`;
-    loadPlaylist();
+    loadPlaylist().finally(() => {
+      void pollMovieLink();
+      setInterval(() => void pollMovieLink(), MOVIE_POLL_INTERVAL);
+    });
   </script>
 </body>
 </html>
