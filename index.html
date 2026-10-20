@@ -53,6 +53,76 @@
       filter: brightness(0.9) saturate(1.05);
     }
 
+    #app.movie-mode {
+      background:#000;
+      color:#eef3ff;
+      font-family:Arial, sans-serif;
+    }
+
+    .movie-mode video#player {
+      object-fit:contain;
+      filter:none;
+    }
+
+    .movie-mode .top-bar {
+      background:linear-gradient(#000c, transparent);
+      backdrop-filter:none;
+    }
+
+    .movie-mode .bottom-bar {
+      background:linear-gradient(transparent, #000d);
+      backdrop-filter:none;
+    }
+
+    .movie-mode .nav-btn {
+      padding:9px 12px;
+      border:1px solid #ffffff30;
+      border-radius:8px;
+      background:#121827dd;
+      color:#eef3ff;
+      letter-spacing:0;
+    }
+
+    .movie-mode .nav-btn:hover {
+      background:rgba(122,198,255,.16);
+      transform:none;
+    }
+
+    .movie-actions,
+    .movie-controls {
+      display:none;
+      align-items:center;
+      gap:8px;
+    }
+
+    .movie-mode .movie-actions,
+    .movie-mode .movie-controls { display:flex; }
+
+    .movie-mode #prevChannel,
+    .movie-mode #nextChannel,
+    .movie-mode #channelCounter,
+    .movie-mode .audio-controls,
+    .movie-mode #endTime,
+    .movie-mode #prevBottom,
+    .movie-mode #nextBottom,
+    .movie-mode .logo,
+    .movie-mode .hint { display:none; }
+
+    .movie-control { min-width:44px; }
+    .movie-source { display:none; }
+    .movie-mode .movie-source { display:block; }
+    .movie-mode .top-actions { flex:1; justify-content:flex-end; }
+    .movie-mode #qualityButton { min-width:112px; }
+
+    .movie-mode .movie-actions { flex-wrap:wrap; justify-content:flex-end; }
+
+    .movie-mode .show-name.movie-source {
+      max-width:min(60vw, 520px);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      color:#a7b0c7;
+    }
+
     .top-bar {
       position:absolute;
       left:0;
@@ -161,6 +231,8 @@
       padding: 4px;
     }
 
+    .logo.movie-logo { filter:invert(1); }
+
     .info {
       display:flex;
       flex-direction:column;
@@ -205,7 +277,7 @@
       position:absolute;
       right:18px;
       bottom:88px;
-      z-index:5;
+      z-index:11;
       width:min(360px, calc(100vw - 36px));
       max-height:min(60vh, 480px);
       overflow:auto;
@@ -214,6 +286,17 @@
       border-radius:10px;
       background:rgba(10,12,18,0.96);
       box-shadow:0 16px 48px rgba(0,0,0,0.45);
+    }
+
+    .movie-mode .quality-picker {
+      right:16px;
+      bottom:110px;
+      width:min(420px, calc(100% - 24px));
+      max-height:60vh;
+      border-color:#2a334a;
+      border-radius:12px;
+      background:rgba(13,17,23,.96);
+      box-shadow:none;
     }
 
     .quality-picker[hidden] { display:none; }
@@ -233,6 +316,74 @@
       letter-spacing:.04em;
       text-shadow:0 1px 8px #000;
       pointer-events:none;
+    }
+
+    .movie-choice-overlay {
+      position:absolute;
+      inset:0;
+      z-index:9;
+      display:grid;
+      place-items:center;
+      padding:20px;
+      background:rgba(0,0,0,0.56);
+      backdrop-filter:blur(5px);
+    }
+
+    .movie-choice-overlay[hidden] { display:none; }
+
+    .movie-choice-panel {
+      width:min(520px, 100%);
+      padding:22px;
+      border:1px solid rgba(255,255,255,0.18);
+      border-radius:10px;
+      background:rgba(10,12,18,0.96);
+      box-shadow:0 20px 64px rgba(0,0,0,0.55);
+    }
+
+    .movie-choice-heading {
+      margin:0 0 14px;
+      font-size:18px;
+      font-weight:800;
+    }
+
+    .movie-choice-list { display:grid; gap:8px; }
+
+    .movie-choice {
+      width:100%;
+      min-height:58px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:12px 14px;
+      border:1px solid rgba(255,255,255,0.14);
+      border-radius:6px;
+      background:rgba(255,255,255,0.05);
+      color:var(--text);
+      text-align:left;
+      cursor:pointer;
+    }
+
+    .movie-choice[aria-selected="true"] {
+      border-color:var(--accent);
+      background:rgba(92,200,255,0.18);
+      box-shadow:inset 3px 0 var(--accent);
+    }
+
+    .movie-choice-detail { color:var(--muted); font-size:12px; text-align:right; }
+
+    .movie-choice-status {
+      min-height:20px;
+      margin-top:12px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .movie-choice-actions {
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:14px;
     }
 
     .movie-loading[hidden],
@@ -342,6 +493,33 @@
       background:rgba(92,200,255,0.16);
     }
 
+    .movie-mode .quality-option {
+      margin:6px 0;
+      padding:9px 12px;
+      border-color:#ffffff1a;
+      border-radius:8px;
+      background:rgba(255,255,255,.02);
+      color:#eef3ff;
+    }
+
+    .movie-mode .quality-option[aria-selected="true"] {
+      border-color:#7ac6ff;
+      background:rgba(122,198,255,.12);
+    }
+
+    .movie-mode .movie-choice-panel {
+      border-color:#2a334a;
+      border-radius:12px;
+      background:rgba(13,17,23,.96);
+      box-shadow:none;
+    }
+
+    .movie-mode .movie-choice[aria-selected="true"] {
+      border-color:#7ac6ff;
+      background:rgba(122,198,255,.12);
+      box-shadow:inset 3px 0 #7ac6ff;
+    }
+
     .quality-empty { color:var(--muted); font-size:13px; }
 
     .poster,
@@ -397,16 +575,30 @@
       }
       .seek-bar { bottom:78px; padding:0 10px; }
     }
+
+    @media (max-width: 520px) {
+      .movie-mode .top-bar { padding:8px; }
+      .movie-mode .movie-actions,
+      .movie-mode .movie-controls { gap:4px; }
+      .movie-mode .nav-btn { padding:7px 8px; font-size:11px; }
+      .movie-mode .movie-control { min-width:40px; }
+      .movie-mode .bottom-bar { gap:8px; padding:9px; }
+      .movie-mode .movie-source { max-width:54vw; }
+    }
   </style>
 </head>
 <body>
   <div id="app">
-    <div class="hint">TV • Tamil Live</div>
-
+    
     <div id="topBar" class="top-bar">
       <button id="prevChannel" class="nav-btn" type="button">◀ Prev</button>
       <div id="channelCounter" class="status-pill">1 / 30</div>
       <div class="top-actions">
+        <div class="movie-actions">
+          <button id="movieRefresh" class="nav-btn" type="button">Get latest movie</button>
+          <button id="qualityButton" class="nav-btn" type="button" hidden>Quality</button>
+          <button id="movieFullscreen" class="nav-btn" type="button">Fullscreen</button>
+        </div>
         <div class="audio-controls" aria-label="Audio controls">
           <button id="delayDown" class="nav-btn small" type="button" title="Reduce audio delay [">[</button>
           <span id="delayValue" class="audio-value">0 ms</span>
@@ -425,6 +617,17 @@
       <span class="loading-spinner" aria-hidden="true"></span>
       <span>Loading movie…</span>
     </div>
+    <section id="movieChoiceOverlay" class="movie-choice-overlay" aria-label="Choose a movie" hidden>
+      <div class="movie-choice-panel">
+        <h2 class="movie-choice-heading">Choose a movie</h2>
+        <div id="movieChoiceList" class="movie-choice-list"></div>
+        <div id="movieChoiceStatus" class="movie-choice-status" role="status" aria-live="polite">Checking latest links…</div>
+        <div class="movie-choice-actions">
+          <button id="movieRetryButton" class="nav-btn" type="button" hidden>Try again</button>
+          <button id="movieQualityButton" class="nav-btn" type="button" hidden>Quality</button>
+        </div>
+      </div>
+    </section>
     <div id="seekBar" class="seek-bar" hidden>
       <span id="currentTime" class="seek-time">0:00</span>
       <input id="seekInput" class="seek-input" type="range" min="0" max="1000" value="0" aria-label="Seek video" disabled />
@@ -438,12 +641,17 @@
       <div class="info">
         <div id="channelName" class="channel-name">Loading…</div>
         <div id="showName" class="show-name">Connecting to stream…</div>
+        <div id="movieSource" class="show-name movie-source"></div>
       </div>
       <div class="right">
         <div id="endTime" class="end-time">LIVE</div>
         <button id="prevBottom" class="nav-btn small" type="button" aria-label="Previous channel">◀</button>
         <button id="nextBottom" class="nav-btn small" type="button" aria-label="Next channel">▶</button>
-        <button id="qualityButton" class="nav-btn" type="button" hidden>Quality</button>
+        <div class="movie-controls">
+          <button id="movieBack10" class="nav-btn movie-control" type="button" aria-label="Back 10 seconds">−10s</button>
+          <button id="moviePlayPause" class="nav-btn movie-control" type="button">Play</button>
+          <button id="movieForward10" class="nav-btn movie-control" type="button" aria-label="Forward 10 seconds">+10s</button>
+        </div>
       </div>
     </div>
     <section id="qualityPicker" class="quality-picker" aria-label="Select video quality" hidden>
@@ -467,12 +675,12 @@
     const JSONBIN_MASTER_KEY = '$2a$10$W5IM0T4OQeoQ588.Y0DMiu.HCHwqI7cawm8nRQzq2pdmLWfrr3UZy';
     const MOVIE_LINK_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
     const MOVIE_CHANNEL_ID = 'latest-movie-link';
-    const MOVIE_POLL_INTERVAL = 15000;
+    const MOVIE_POLL_INTERVAL = 10000;
     const MOVIE_RESOLVE_RETRY_INTERVAL = 10000;
     const MOVIE_MAX_PLAYBACK_ATTEMPTS = 5;
     const MOVIE_MAX_RETRY_DELAY = 30000;
     const LOCAL_PLAYLIST_KEY = 'iptv-local-playlist-m3u';
-    const LAST_CHANNEL_KEY = 'iptv-last-played-channel';
+    const MOVIE_LOGO_URL = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/film.svg';
     let channels = [];
     let idx = 0;
     let hls = null;
@@ -489,13 +697,28 @@
     let audioDelaySeconds = 0;
     let lastMovieFetchUrl = '';
     let movieVideoUrl = '';
+    let movieDirectUrl = '';
     let movieSourceUrl = '';
     let movieResolveInProgress = false;
     let movieNeedsRetry = false;
     const failedMovieUrls = new Set();
     let qualityOptions = [];
     let qualitySelection = 0;
+    let qualityPickerHideTimer = null;
     let moviePollInProgress = false;
+    let moviePlaybackActive = false;
+    let moviePlaybackChoiceId = '';
+    let movieFallbackInProgress = false;
+    let movieResolvedFor = '';
+    let movieResolvedOptions = [];
+    let movieResolvePromise = null;
+    let movieChoiceItems = [];
+    let movieChoiceSelection = 0;
+    let movieChoiceTimer = null;
+    let movieChoiceDeadline = 0;
+    let movieResolveLoaderTimer = null;
+    let movieDataReady = false;
+    let movieLinkFetchFailed = false;
     let isMuted = false;
     let guideOpen = true;
     const MAX_PLAYBACK_ATTEMPTS = 5;
@@ -519,10 +742,21 @@
     const volumeUpBtn = document.getElementById('volumeUp');
     const volumeValue = document.getElementById('volumeValue');
     const qualityButton = document.getElementById('qualityButton');
+    const movieRefreshButton = document.getElementById('movieRefresh');
+    const movieFullscreenButton = document.getElementById('movieFullscreen');
+    const movieBack10Button = document.getElementById('movieBack10');
+    const moviePlayPauseButton = document.getElementById('moviePlayPause');
+    const movieForward10Button = document.getElementById('movieForward10');
+    const movieSourceElement = document.getElementById('movieSource');
     const qualityPicker = document.getElementById('qualityPicker');
     const qualityList = document.getElementById('qualityList');
     const qualityClose = document.getElementById('qualityClose');
     const movieLoading = document.getElementById('movieLoading');
+    const movieChoiceOverlay = document.getElementById('movieChoiceOverlay');
+    const movieChoiceList = document.getElementById('movieChoiceList');
+    const movieChoiceStatus = document.getElementById('movieChoiceStatus');
+    const movieRetryButton = document.getElementById('movieRetryButton');
+    const movieQualityButton = document.getElementById('movieQualityButton');
     const seekBar = document.getElementById('seekBar');
     const seekInput = document.getElementById('seekInput');
     const currentTimeLabel = document.getElementById('currentTime');
@@ -624,15 +858,7 @@
     }
 
     function chooseStartIndex(list) {
-      let startIndex = Math.floor(Math.random() * list.length);
-      try {
-        const savedUrl = localStorage.getItem(LAST_CHANNEL_KEY);
-        const savedIndex = list.findIndex((channel) => channel.url === savedUrl);
-        if (savedIndex !== -1) startIndex = savedIndex;
-      } catch (error) {
-        console.warn('Could not read the saved channel', error);
-      }
-      return startIndex;
+      return Math.floor(Math.random() * list.length);
     }
 
     async function loadPlaylist() {
@@ -694,6 +920,7 @@
 
     function extractMovieUrl(value) {
       const text = String(value || '');
+      if (/error\s*:\s*404/i.test(text)) return '';
       const match = text.match(/https?:\/\/[^\s"'<>]+/i);
       if (!match) return '';
 
@@ -704,11 +931,282 @@
       }
     }
 
+    function standardMovieOption(videos) {
+      const available = videos.filter((item) => item?.url && !failedMovieUrls.has(item.url));
+      const nonPreDvd = available.filter((item) => !item.preDVD);
+      const choices = (nonPreDvd.length ? nonPreDvd : available)
+        .slice()
+        .sort((first, second) => (second.resolution || 0) - (first.resolution || 0));
+      return [720, 420, 480]
+        .map((resolution) => choices.find((item) => item.resolution === resolution))
+        .find(Boolean) || choices.find((item) => item.resolution > 0 && item.resolution <= 720) || choices[0] || null;
+    }
+
+    function updateMovieQualityButton() {
+      const currentOption = [...qualityOptions, ...movieResolvedOptions, ...movieChoiceItems]
+        .find((option) => option?.url === movieVideoUrl);
+      const label = movieVideoUrl
+        ? `Quality ${currentOption?.resolution ? `${currentOption.resolution}p` : 'Unknown'}`
+        : 'Quality';
+      qualityButton.textContent = label;
+      movieQualityButton.textContent = label;
+    }
+
+    function clearMovieChoiceTimer() {
+      clearTimeout(movieChoiceTimer);
+      movieChoiceTimer = null;
+    }
+
+    function closeMovieChooser() {
+      movieChoiceOverlay.hidden = true;
+      clearMovieChoiceTimer();
+      clearTimeout(movieResolveLoaderTimer);
+      movieResolveLoaderTimer = null;
+    }
+
+    function startMovieChoiceCountdown() {
+      clearMovieChoiceTimer();
+      movieChoiceDeadline = Date.now() + 5000;
+      const updateCountdown = () => {
+        if (movieChoiceOverlay.hidden) return;
+        const selected = movieChoiceItems[movieChoiceSelection];
+        if (!selected?.ready) {
+          movieChoiceStatus.textContent = 'Finding a playable video link…';
+          return;
+        }
+        const secondsLeft = Math.max(0, Math.ceil((movieChoiceDeadline - Date.now()) / 1000));
+        movieChoiceStatus.textContent = `Auto-playing ${selected.label} in ${secondsLeft}…`;
+        if (secondsLeft === 0) {
+          void playMovieChoice(movieChoiceSelection);
+          return;
+        }
+        movieChoiceTimer = setTimeout(updateCountdown, 200);
+      };
+      updateCountdown();
+    }
+
+    function selectMovieChoice(index, resetCountdown = true) {
+      if (!movieChoiceItems.length) return;
+      movieChoiceSelection = (index + movieChoiceItems.length) % movieChoiceItems.length;
+      movieChoiceList.querySelectorAll('.movie-choice').forEach((option, optionIndex) => {
+        option.setAttribute('aria-selected', String(optionIndex === movieChoiceSelection));
+      });
+      if (resetCountdown) startMovieChoiceCountdown();
+    }
+
+    function renderMovieChoices() {
+      if (movieChoiceOverlay.hidden) return;
+      const previousId = movieChoiceItems[movieChoiceSelection]?.id;
+      movieChoiceItems = [];
+      if (movieDirectUrl) {
+        const directFailed = failedMovieUrls.has(movieDirectUrl);
+        movieChoiceItems.push({
+          id: 'direct',
+          label: 'Movie 1',
+          url: directFailed ? '' : movieDirectUrl,
+          ready: !directFailed,
+          direct: true,
+          detail: directFailed ? 'Failed; skipped' : 'Direct video'
+        });
+      }
+      if (movieSourceUrl) {
+        const candidate = standardMovieOption(movieResolvedOptions);
+        movieChoiceItems.push({
+          id: 'source',
+          label: 'Movie 2',
+          url: candidate?.url || '',
+          sourceUrl: movieSourceUrl,
+          ready: Boolean(candidate),
+          direct: Boolean(candidate?.direct),
+          detail: candidate ? `${candidate.resolution || 'Standard'}${candidate.resolution ? 'p' : ''}` : 'Finding video URL…'
+        });
+      }
+
+      movieChoiceList.replaceChildren();
+      movieRetryButton.hidden = movieChoiceItems.length > 0;
+      movieQualityButton.hidden = !movieSourceUrl;
+      if (!movieChoiceItems.length) {
+        movieChoiceStatus.textContent = movieDataReady || movieLinkFetchFailed
+          ? 'No movie links found. Try again.'
+          : 'Checking latest links…';
+        clearMovieChoiceTimer();
+        return;
+      }
+
+      movieChoiceItems.forEach((item, optionIndex) => {
+        const button = document.createElement('button');
+        button.className = 'movie-choice';
+        button.type = 'button';
+        button.setAttribute('aria-selected', String(optionIndex === movieChoiceSelection));
+        const name = document.createElement('span');
+        name.textContent = item.label;
+        const detail = document.createElement('span');
+        detail.className = 'movie-choice-detail';
+        detail.textContent = item.detail || (item.ready ? 'Ready to play' : 'Finding video URL…');
+        button.append(name, detail);
+        button.addEventListener('click', () => {
+          selectMovieChoice(optionIndex);
+          void playMovieChoice(optionIndex);
+        });
+        movieChoiceList.append(button);
+      });
+      if (previousId) {
+        const matchingIndex = movieChoiceItems.findIndex((item) => item.id === previousId);
+        if (matchingIndex !== -1) movieChoiceSelection = matchingIndex;
+      } else {
+        movieChoiceSelection = 0;
+      }
+      selectMovieChoice(movieChoiceSelection, false);
+      if (movieChoiceItems[movieChoiceSelection]?.ready && !movieChoiceTimer) startMovieChoiceCountdown();
+      if (!movieChoiceItems[movieChoiceSelection]?.ready) {
+        movieChoiceStatus.textContent = 'Finding a playable video link…';
+      }
+    }
+
+    async function resolveMovieOptions() {
+      if (!movieSourceUrl || typeof GetAllVideoUrl !== 'function') return [];
+      if (movieResolvedFor === movieSourceUrl && movieResolvedOptions.length) return movieResolvedOptions;
+      if (movieResolvePromise) return movieResolvePromise;
+
+      const resolvingUrl = movieSourceUrl;
+      const resolvingDirectUrl = movieDirectUrl;
+      movieChoiceStatus.textContent = 'Finding video URL…';
+      movieResolveLoaderTimer = setTimeout(() => {
+        if (!movieChoiceOverlay.hidden && movieSourceUrl === resolvingUrl) {
+          movieChoiceStatus.innerHTML = '<span class="loading-spinner" aria-hidden="true" style="display:inline-block;width:18px;height:18px;vertical-align:middle;margin-right:8px"></span>Still finding video URLs…';
+        }
+      }, 5000);
+      movieResolvePromise = GetAllVideoUrl(resolvingUrl)
+        .then((result) => {
+          movieResolvedFor = resolvingUrl;
+          movieResolvedOptions = (result?.videos || []).slice().sort((first, second) =>
+            (second.resolution || 0) - (first.resolution || 0)
+          );
+          if (resolvingDirectUrl && !movieResolvedOptions.some((item) => item.url === resolvingDirectUrl)) {
+            movieResolvedOptions.unshift({
+              url: resolvingDirectUrl,
+              label: 'Direct video',
+              resolution: 0,
+              direct: true
+            });
+          }
+          movieNeedsRetry = !standardMovieOption(movieResolvedOptions);
+          if (movieSourceUrl === resolvingUrl && !qualityPicker.hidden) {
+            qualityOptions = movieResolvedOptions;
+            renderQualityOptions();
+          }
+          return movieResolvedOptions;
+        })
+        .catch((error) => {
+          movieResolvedFor = resolvingUrl;
+          movieResolvedOptions = [];
+          movieNeedsRetry = true;
+          console.warn('Could not resolve movie video URLs', error);
+          return [];
+        })
+        .finally(() => {
+          movieResolvePromise = null;
+          clearTimeout(movieResolveLoaderTimer);
+          movieResolveLoaderTimer = null;
+          renderMovieChoices();
+          if (!qualityPicker.hidden && movieSourceUrl === resolvingUrl) {
+            qualityOptions = movieResolvedOptions;
+            renderQualityOptions();
+          }
+          if (movieSourceUrl && movieSourceUrl !== resolvingUrl) void resolveMovieOptions();
+        });
+      return movieResolvePromise;
+    }
+
+    async function playMovieChoice(index) {
+      const selected = movieChoiceItems[index];
+      if (!selected) {
+        if (!movieChoiceItems.length) void pollMovieLink();
+        return;
+      }
+      if (selected.id === 'source' && !selected.ready) {
+        await resolveMovieOptions();
+        const resolved = movieChoiceItems.find((item) => item.id === 'source');
+        if (!resolved?.ready) return;
+        return playMovieChoice(movieChoiceItems.indexOf(resolved));
+      }
+      if (!selected.url) return;
+
+      if (selected.id === 'direct') {
+        const status = await checkMovieUrlStatus(selected.url);
+        if (status === 404) {
+          movieFallbackInProgress = true;
+          failedMovieUrls.add(selected.url);
+          renderMovieChoices();
+          await playMovie2AfterMovie1Failure('Movie 1 returned HTTP 404');
+          return;
+        }
+      }
+
+      movieVideoUrl = selected.url;
+      movieNeedsRetry = false;
+      moviePlaybackActive = true;
+      moviePlaybackChoiceId = selected.id;
+      movieFallbackInProgress = false;
+      updateMovieQualityButton();
+      closeMovieChooser();
+      const movieIndex = updateMovieChannel(selected.url, selected.direct);
+      loadChannel(movieIndex, true);
+    }
+
+    async function checkMovieUrlStatus(url) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      try {
+        const response = await fetch(url, {
+          method: 'HEAD',
+          cache: 'no-store',
+          signal: controller.signal
+        });
+        return response.status;
+      } catch (error) {
+        console.info('Could not verify Movie 1 HTTP status; attempting Movie 1 playback.', error);
+        return null;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    async function playMovie2AfterMovie1Failure(reason = 'Movie 1 failed') {
+      const sourceChoice = movieChoiceItems.find((item) => item.id === 'source');
+      if (!sourceChoice) {
+        movieChoiceStatus.textContent = `${reason}. Movie 2 is unavailable.`;
+        return;
+      }
+      if (!sourceChoice.ready) {
+        movieChoiceSelection = movieChoiceItems.indexOf(sourceChoice);
+        renderMovieChoices();
+        movieChoiceStatus.textContent = `${reason}. Finding Movie 2…`;
+        await resolveMovieOptions();
+      }
+      const resolvedChoice = movieChoiceItems.find((item) => item.id === 'source');
+      if (!resolvedChoice?.ready) {
+        movieChoiceStatus.textContent = `${reason}. Movie 2 has no playable URL.`;
+        return;
+      }
+      await playMovieChoice(movieChoiceItems.indexOf(resolvedChoice));
+    }
+
+    function openMovieChooser() {
+      moviePlaybackActive = false;
+      movieLoading.hidden = true;
+      movieChoiceOverlay.hidden = false;
+      qualityPicker.hidden = true;
+      renderMovieChoices();
+      if (!movieDataReady || movieLinkFetchFailed) void pollMovieLink();
+      if (movieSourceUrl && !movieResolvedOptions.length) void resolveMovieOptions();
+    }
+
     function updateMovieChannel(url, directMedia = false) {
       const movieChannel = {
         id: MOVIE_CHANNEL_ID,
         name: 'Latest Movie',
-        logo: '',
+        logo: MOVIE_LOGO_URL,
         group: 'Movie link',
         directMedia,
         language: 'Tamil',
@@ -741,7 +1239,9 @@
         }
 
         movieVideoUrl = resolvedUrl;
+        moviePlaybackChoiceId = 'source';
         movieNeedsRetry = false;
+        updateMovieQualityButton();
         const movieIndex = updateMovieChannel(resolvedUrl);
         if (playWhenReady && channels[idx]?.id === MOVIE_CHANNEL_ID) {
           loadChannel(movieIndex, true, isRetry);
@@ -769,27 +1269,51 @@
         const data = await response.json();
         const directVideoUrl = extractMovieUrl(data?.record?.video_url);
         const sourceUrl = extractMovieUrl(data?.record?.url);
-        if ((!directVideoUrl && !sourceUrl) || `${directVideoUrl}|${sourceUrl}` === lastMovieFetchUrl) return;
-
-        lastMovieFetchUrl = `${directVideoUrl}|${sourceUrl}`;
-        movieSourceUrl = sourceUrl;
-        movieVideoUrl = directVideoUrl;
-        movieNeedsRetry = !directVideoUrl;
-        failedMovieUrls.clear();
-        const wasPlayingMovie = channels[idx]?.id === MOVIE_CHANNEL_ID;
-        console.log('New movie link:', directVideoUrl || sourceUrl);
-        const movieIndex = updateMovieChannel(directVideoUrl || sourceUrl, Boolean(directVideoUrl));
-        if (wasPlayingMovie) {
-          showName.textContent = 'Loading latest movie…';
-          video.pause();
+        const fetchedUrls = `${directVideoUrl}|${sourceUrl}`;
+        const linksChanged = fetchedUrls !== lastMovieFetchUrl;
+        lastMovieFetchUrl = fetchedUrls;
+        movieDataReady = true;
+        movieLinkFetchFailed = false;
+        if (linksChanged) {
+          movieResolvedFor = '';
+          movieResolvedOptions = [];
+          qualityOptions = [];
+          qualitySelection = 0;
+          movieChoiceSelection = 0;
+          movieChoiceItems = [];
+          failedMovieUrls.clear();
+          movieFallbackInProgress = false;
         }
-        if (directVideoUrl) {
-          if (wasPlayingMovie) loadChannel(movieIndex, true);
-        } else {
-          await resolveMovieLink(wasPlayingMovie);
+        movieDirectUrl = directVideoUrl;
+        movieSourceUrl = sourceUrl;
+        movieSourceElement.textContent = sourceUrl || directVideoUrl;
+        movieNeedsRetry = !directVideoUrl && Boolean(sourceUrl);
+        const wasPlayingMovie = channels[idx]?.id === MOVIE_CHANNEL_ID;
+        console.log('Latest movie links updated:', directVideoUrl || sourceUrl || 'empty');
+        updateMovieChannel(directVideoUrl || sourceUrl || MOVIE_LINK_URL, Boolean(directVideoUrl));
+        if (wasPlayingMovie) qualityButton.hidden = !sourceUrl && !directVideoUrl;
+        if (wasPlayingMovie && !moviePlaybackActive) {
+          renderMovieChoices();
+          if (movieSourceUrl && !movieResolvedOptions.length) void resolveMovieOptions();
+        } else if (wasPlayingMovie && moviePlaybackActive && linksChanged && movieSourceUrl) {
+          if (!qualityPicker.hidden) {
+            qualityList.innerHTML = '<div class="quality-empty">Updated movie link. Finding qualities…</div>';
+          }
+          void resolveMovieOptions();
+        } else if (wasPlayingMovie && moviePlaybackActive && linksChanged && movieDirectUrl) {
+          qualityOptions = [{
+            url: movieDirectUrl,
+            label: 'Direct video',
+            resolution: 0,
+            direct: true
+          }];
+          if (!qualityPicker.hidden) renderQualityOptions();
         }
       } catch (error) {
+        movieDataReady = true;
+        movieLinkFetchFailed = true;
         console.warn('Could not poll the latest movie link', error);
+        if (channels[idx]?.id === MOVIE_CHANNEL_ID && !moviePlaybackActive) renderMovieChoices();
       } finally {
         moviePollInProgress = false;
       }
@@ -813,6 +1337,18 @@
       stablePlaybackTimer = null;
 
       if (channels[idx]?.id === MOVIE_CHANNEL_ID) {
+        if (moviePlaybackChoiceId === 'direct' && !movieFallbackInProgress) {
+          movieFallbackInProgress = true;
+          failedMovieUrls.add(movieVideoUrl);
+          showName.textContent = 'Movie 1 failed; trying Movie 2…';
+          retryTimer = setTimeout(() => {
+            retryTimer = null;
+            openMovieChooser();
+            void playMovie2AfterMovie1Failure();
+          }, 0);
+          return;
+        }
+
         if (playbackAttempts >= MOVIE_MAX_PLAYBACK_ATTEMPTS) {
           movieNeedsRetry = false;
           movieLoading.hidden = true;
@@ -855,19 +1391,37 @@
       else playbackAttempts += 1;
       idx = (index + channels.length) % channels.length;
       const ch = channels[idx];
+      const isMovie = ch.id === MOVIE_CHANNEL_ID;
+      app.classList.toggle('movie-mode', isMovie);
       const token = ++activePlaybackToken;
 
       logo.src = ch.logo || '';
+      logo.classList.toggle('movie-logo', ch.id === MOVIE_CHANNEL_ID);
       channelName.textContent = ch.name || 'Tamil Channel';
       showName.textContent = ch.group || 'Live';
+      movieSourceElement.textContent = isMovie ? movieSourceUrl || movieDirectUrl : '';
+      moviePlayPauseButton.textContent = video.paused ? 'Play' : 'Pause';
       endTime.textContent = 'LIVE';
       updateCounter();
+
+      if (ch.id !== MOVIE_CHANNEL_ID) {
+        moviePlaybackActive = false;
+        closeMovieChooser();
+      } else if (!moviePlaybackActive) {
+        video.pause();
+        qualityButton.hidden = !movieSourceUrl && !movieDirectUrl;
+        qualityPicker.hidden = true;
+        movieLoading.hidden = true;
+        openMovieChooser();
+        return;
+      }
 
       flash.style.display = 'block';
       setTimeout(() => flash.style.display = 'none', 500);
 
       video.pause();
-      qualityButton.hidden = ch.id !== MOVIE_CHANNEL_ID;
+      qualityButton.hidden = ch.id !== MOVIE_CHANNEL_ID || (!movieSourceUrl && !movieDirectUrl);
+      if (isMovie) updateMovieQualityButton();
       if (ch.id !== MOVIE_CHANNEL_ID) qualityPicker.hidden = true;
       movieLoading.hidden = ch.id !== MOVIE_CHANNEL_ID;
       const isDirectMedia = ch.id === MOVIE_CHANNEL_ID && (ch.directMedia ||
@@ -1080,7 +1634,7 @@
       clearTimeout(window.__tvUiHideTimer);
       window.__tvUiHideTimer = setTimeout(() => {
         app.classList.add('ui-hidden');
-      }, 2600);
+      }, app.classList.contains('movie-mode') ? 6000 : 2600);
     }
 
     ['pointermove', 'pointerdown', 'touchstart', 'keydown'].forEach((eventName) => {
@@ -1101,12 +1655,35 @@
       updateSeekBar();
     });
 
+    movieRetryButton.addEventListener('click', () => void pollMovieLink());
+    movieQualityButton.addEventListener('click', () => void openQualityPicker());
+    movieRefreshButton.addEventListener('click', () => void pollMovieLink());
+    movieFullscreenButton.addEventListener('click', () => void toggleFullscreenAndUnmute());
+    movieBack10Button.addEventListener('click', () => seekVideo(-10));
+    movieForward10Button.addEventListener('click', () => seekVideo(10));
+    moviePlayPauseButton.addEventListener('click', () => {
+      if (video.paused) void tryPlay(activePlaybackToken);
+      else video.pause();
+    });
+    ['pointermove', 'pointerdown'].forEach((eventName) => {
+      qualityPicker.addEventListener(eventName, () => {
+        if (!qualityPicker.hidden) scheduleQualityPickerHide();
+      });
+    });
+
     ['durationchange', 'loadedmetadata', 'timeupdate', 'seeked'].forEach((eventName) => {
       video.addEventListener(eventName, updateSeekBar);
     });
 
     function closeQualityPicker() {
+      clearTimeout(qualityPickerHideTimer);
+      qualityPickerHideTimer = null;
       qualityPicker.hidden = true;
+    }
+
+    function scheduleQualityPickerHide() {
+      clearTimeout(qualityPickerHideTimer);
+      qualityPickerHideTimer = setTimeout(closeQualityPicker, 6000);
     }
 
     function selectQuality(index) {
@@ -1116,52 +1693,67 @@
         option.setAttribute('aria-selected', String(optionIndex === qualitySelection));
       });
       qualityList.querySelectorAll('.quality-option')[qualitySelection]?.scrollIntoView({ block: 'nearest' });
+      scheduleQualityPickerHide();
+    }
+
+    function renderQualityOptions() {
+      qualityList.replaceChildren();
+      if (!qualityOptions.length) {
+        qualityList.innerHTML = '<div class="quality-empty">No video URLs found.</div>';
+        return;
+      }
+
+      qualityOptions.forEach((videoOption, optionIndex) => {
+        const button = document.createElement('button');
+        button.className = 'quality-option';
+        button.type = 'button';
+        button.setAttribute('aria-selected', 'false');
+        const label = document.createElement('span');
+        label.textContent = videoOption.label || 'Video';
+        const resolution = document.createElement('span');
+        resolution.textContent = videoOption.resolution ? `${videoOption.resolution}p` : 'Unknown';
+        button.append(label, resolution);
+        button.addEventListener('click', () => {
+          qualitySelection = optionIndex;
+          playSelectedQuality();
+        });
+        qualityList.append(button);
+      });
+
+      const currentIndex = qualityOptions.findIndex((option) => option.url === movieVideoUrl);
+      const standard = standardMovieOption(qualityOptions);
+      const selectedIndex = currentIndex !== -1 ? currentIndex : qualityOptions.indexOf(standard);
+      selectQuality(selectedIndex === -1 ? 0 : selectedIndex);
     }
 
     function playSelectedQuality() {
       const selected = qualityOptions[qualitySelection];
       if (!selected?.url) return;
+      if (selected.url === movieVideoUrl) return;
       movieVideoUrl = selected.url;
       movieNeedsRetry = false;
+      moviePlaybackActive = true;
+      moviePlaybackChoiceId = 'source';
+      updateMovieQualityButton();
       const movieIndex = updateMovieChannel(selected.url);
-      closeQualityPicker();
       loadChannel(movieIndex, true);
     }
 
     async function openQualityPicker() {
-      if (!movieSourceUrl || typeof GetAllVideoUrl !== 'function') return;
+      if (!qualityOptions.length && !movieSourceUrl) return;
       qualityPicker.hidden = false;
-      qualityList.innerHTML = '<div class="quality-empty">Finding available qualities…</div>';
-      try {
-        const result = await GetAllVideoUrl(movieSourceUrl);
-        console.log('GetAllVideoUrl output:', result);
-        qualityOptions = (result?.videos || []).slice().sort((a, b) => b.resolution - a.resolution);
-        qualityList.replaceChildren();
-        if (!qualityOptions.length) {
-          qualityList.innerHTML = '<div class="quality-empty">No video URLs found.</div>';
-          return;
-        }
-        qualityOptions.forEach((videoOption, optionIndex) => {
-          const button = document.createElement('button');
-          button.className = 'quality-option';
-          button.type = 'button';
-          button.setAttribute('aria-selected', 'false');
-          const label = document.createElement('span');
-          label.textContent = videoOption.label || 'Video';
-          const resolution = document.createElement('span');
-          resolution.textContent = videoOption.resolution ? `${videoOption.resolution}p` : 'Unknown';
-          button.append(label, resolution);
-          button.addEventListener('click', () => {
-            qualitySelection = optionIndex;
-            playSelectedQuality();
-          });
-          qualityList.append(button);
-        });
-        selectQuality(0);
-      } catch (error) {
-        console.warn('Could not list movie qualities', error);
-        qualityList.innerHTML = '<div class="quality-empty">Could not find video URLs.</div>';
+      scheduleQualityPickerHide();
+      if (!movieSourceUrl && qualityOptions.length) {
+        renderQualityOptions();
+        return;
       }
+      if (movieResolvedFor === movieSourceUrl && movieResolvedOptions.length) {
+        qualityOptions = movieResolvedOptions;
+        renderQualityOptions();
+        return;
+      }
+      qualityList.innerHTML = '<div class="quality-empty">Finding available qualities…</div>';
+      void resolveMovieOptions();
     }
 
     async function retryMoviePlayback() {
@@ -1176,6 +1768,7 @@
           );
           if (alternative) {
             movieVideoUrl = alternative.url;
+            moviePlaybackChoiceId = 'source';
             movieNeedsRetry = false;
             const movieIndex = updateMovieChannel(alternative.url);
             if (channels[idx]?.id === MOVIE_CHANNEL_ID) loadChannel(movieIndex, true, true);
@@ -1214,15 +1807,49 @@
         return;
       }
 
-      if ((ev.key === 'f' || ev.key === 'F') && !ev.repeat) {
+      if (!movieChoiceOverlay.hidden) {
+        if (ev.key === 'w' || ev.key === 'W' || ev.key === 'ArrowUp') {
+          ev.preventDefault();
+          selectMovieChoice(movieChoiceSelection - 1);
+        } else if (ev.key === 's' || ev.key === 'S' || ev.key === 'ArrowDown') {
+          ev.preventDefault();
+          selectMovieChoice(movieChoiceSelection + 1);
+        } else if (ev.key === 'Enter') {
+          ev.preventDefault();
+          if (movieChoiceItems.length) void playMovieChoice(movieChoiceSelection);
+          else void pollMovieLink();
+        } else if (ev.key === 'Escape') {
+          ev.preventDefault();
+          closeMovieChooser();
+        }
+        return;
+      }
+
+      if ((ev.key === 'w' || ev.key === 'W' || ev.key === 's' || ev.key === 'S') &&
+          channels[idx]?.id === MOVIE_CHANNEL_ID && moviePlaybackActive && movieSourceUrl) {
+        ev.preventDefault();
+        void openQualityPicker();
+      } else if ((ev.key === ' ' || ev.key === 'Spacebar') && channels[idx]?.id === MOVIE_CHANNEL_ID) {
+        ev.preventDefault();
+        if (video.paused) void tryPlay(activePlaybackToken);
+        else video.pause();
+      } else if ((ev.key === 'f' || ev.key === 'F') && !ev.repeat) {
         ev.preventDefault();
         void toggleFullscreenAndUnmute();
       } else if (ev.key === 'ArrowLeft') {
-        loadChannel(idx - 1, true);
-        triggerAutoClick();
+        // if (channels[idx]?.id === MOVIE_CHANNEL_ID) seekVideo(-10);
+        // else 
+        {
+          loadChannel(idx - 1, true);
+          triggerAutoClick();
+        }
       } else if (ev.key === 'ArrowRight') {
-        loadChannel(idx + 1, true);
-        triggerAutoClick();
+        // if (channels[idx]?.id === MOVIE_CHANNEL_ID) seekVideo(10);
+        // else 
+        {
+          loadChannel(idx + 1, true);
+          triggerAutoClick();
+        }
       } else if (ev.key === 'ArrowUp') {
         ev.preventDefault();
         adjustVolume(0.05);
@@ -1231,10 +1858,10 @@
         adjustVolume(-0.05);
       } else if (ev.key === ',') {
         ev.preventDefault();
-        seekVideo(-10);
+        seekVideo(-5);
       } else if (ev.key === '.') {
         ev.preventDefault();
-        seekVideo(10);
+        seekVideo(5);
       } else if (ev.key === '[') {
         ev.preventDefault();
         void setAudioDelay(audioDelaySeconds - 0.1);
@@ -1252,9 +1879,9 @@
       showUi();
       if (video.paused) {
         await tryPlay();
-      } else {
+      } else if (channels[idx]?.id !== MOVIE_CHANNEL_ID) {
         isMuted = !isMuted;
-        if (!isMuted)video.muted = isMuted;
+        video.muted = isMuted;
       }
     });
 
@@ -1276,6 +1903,7 @@
 
     video.addEventListener('playing', () => {
       movieLoading.hidden = true;
+      moviePlayPauseButton.textContent = 'Pause';
       updateSeekBar();
       clearTimeout(stallTimer);
       stallTimer = null;
@@ -1285,14 +1913,8 @@
       }, 20000);
     });
 
-    video.addEventListener('playing', () => {
-      const currentChannel = channels[idx];
-      if (!currentChannel) return;
-      try {
-        localStorage.setItem(LAST_CHANNEL_KEY, currentChannel.url);
-      } catch (error) {
-        console.warn('Could not save the last played channel', error);
-      }
+    video.addEventListener('pause', () => {
+      moviePlayPauseButton.textContent = 'Play';
     });
 
     showUi();
@@ -1302,8 +1924,9 @@
       void pollMovieLink();
       setInterval(() => void pollMovieLink(), MOVIE_POLL_INTERVAL);
       setInterval(() => {
-        if (movieNeedsRetry && movieSourceUrl && channels[idx]?.id !== MOVIE_CHANNEL_ID) {
-          void resolveMovieLink();
+        if (movieNeedsRetry && movieSourceUrl && !movieResolvePromise) {
+          movieResolvedFor = '';
+          void resolveMovieOptions();
         }
       }, MOVIE_RESOLVE_RETRY_INTERVAL);
     });
